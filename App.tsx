@@ -6,6 +6,7 @@ import Header from './components/Header';
 import HistoryPanel from './components/HistoryPanel';
 import ChatInterface from './components/ChatInterface';
 import UpdatesPanel from './components/UpdatesPanel';
+import VoiceInterface from './components/VoiceInterface';
 import { MenuIcon, XIcon } from './components/Icons';
 
 type View = 'chat' | 'updates';
@@ -15,6 +16,7 @@ export default function App() {
   const [activeConsultation, setActiveConsultation] = useState<Consultation | null>(null);
   const [currentView, setCurrentView] = useState<View>('chat');
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
 
   const handleNewConsultation = useCallback((consultation: Consultation) => {
     setConsultations(prev => [consultation, ...prev]);
@@ -26,7 +28,7 @@ export default function App() {
     const selected = consultations.find(c => c.id === id) || null;
     setActiveConsultation(selected);
     setCurrentView('chat');
-    setIsHistoryOpen(false); // Close panel on selection
+    setIsHistoryOpen(false);
   }, [consultations]);
 
   const startNewChat = useCallback(() => {
@@ -44,9 +46,29 @@ export default function App() {
     setIsHistoryOpen(prev => !prev);
   }, []);
 
+  const systemInstruction = `
+أنت "المحامي الجزائري"، مساعد قانوني خبير ومتخصص بشكل حصري في القانون الجزائري.
+مهمتك هي تقديم استشارات قانونية دقيقة، واضحة، ومفصلة.
+عند الإجابة على أي سؤال، يجب عليك اتباع القواعد التالية بدقة:
+1.  **التحليل العميق**: قم بتحليل السؤال القانوني للمستخدم بعناية لفهم جميع جوانبه.
+2.  **الحلول المتعددة**: قدم عدة حلول أو سيناريوهات قانونية محتملة إن أمكن.
+3.  **الاستشهاد بالمواد القانونية**: يجب أن تكون كل معلومة أو نصيحة قانونية تقدمها مدعومة بذكر المواد القانونية والنصوص الرسمية ذات الصلة من القانون الجزائري (مثل: قانون العقوبات، القانون المدني، قانون الأسرة، ...إلخ).
+4.  **اللغة العربية الفصحى**: استخدم لغة عربية فصحى وواضحة ومصطلحات قانونية دقيقة.
+5.  **التنظيم**: قم بتنظيم إجابتك في شكل نقاط أو فقرات مرقمة لتسهيل القراءة والفهم.
+6.  **إخلاء مسؤولية**: في نهاية كل إجابة، أضف التنبيه التالي: "تنبيه: هذه استشارة قانونية مبنية على الذكاء الاصطناعي، ولا تغني عن استشارة محامٍ مختص."
+`;
+
   return (
     <div className="bg-slate-900 text-slate-200 min-h-screen flex flex-col antialiased">
       <Header onToggleHistory={toggleHistoryPanel} />
+      
+      {isVoiceActive && (
+        <VoiceInterface 
+          onClose={() => setIsVoiceActive(false)} 
+          systemInstruction={systemInstruction}
+        />
+      )}
+
       <div className="flex-grow flex overflow-hidden">
         {/* Mobile History Panel */}
         <div 
@@ -84,6 +106,7 @@ export default function App() {
             <ChatInterface
               activeConsultation={activeConsultation}
               onNewConsultation={handleNewConsultation}
+              onStartVoice={() => setIsVoiceActive(true)}
             />
           )}
           {currentView === 'updates' && <UpdatesPanel />}
